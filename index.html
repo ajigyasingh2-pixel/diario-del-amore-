@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 Il Diario di Bea</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        background: radial-gradient(circle at center, #6b0f1a, #3a0408);
+        font-family: 'Great Vibes', cursive;
+    }
+
+    /* Petali */
+    .petal {
+        position: fixed;
+        width: 15px;
+        height: 15px;
+        background: radial-gradient(circle at center, pink 40%, transparent 80%);
+        border-radius: 50%;
+        animation: fall linear infinite;
+        opacity: 0.8;
+    }
+
+    @keyframes fall {
+        0% {transform: translateY(-10%) rotate(0deg);}
+        100% {transform: translateY(110vh) rotate(720deg);}
+    }
+
+    /* Diario */
+    #book {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 600px;
+        height: 80%;
+        background: #fdf2e9;
+        border: 6px solid gold;
+        border-radius: 20px;
+        box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        overflow: hidden;
+        perspective: 1500px;
+    }
+
+    .page {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        backface-visibility: hidden;
+        background: linear-gradient(90deg, #fff8f0 0%, #fff2e0 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 30px;
+        text-align: center;
+        transition: transform 1s ease;
+    }
+
+    .hidden { display: none; }
+
+    #cover {
+        background: linear-gradient(135deg, #8b0000, #3a0408);
+        color: gold;
+        font-size: 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    #cover small {
+        font-size: 18px;
+        color: #ffd700;
+    }
+
+    /* Frasi */
+    .phrase {
+        font-size: 26px;
+        color: #5e0010;
+        max-width: 90%;
+        animation: appearText 3s steps(40) 1;
+    }
+
+    @keyframes appearText {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Bottoni */
+    .btn {
+        background: gold;
+        color: #5e0010;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 18px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-family: 'Georgia';
+    }
+
+    .btn:hover {
+        background: #ffdf70;
+    }
+
+    /* Effetti mini giochi */
+    .heart {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: red;
+        transform: rotate(45deg);
+        cursor: pointer;
+        animation: rise 4s ease forwards;
+    }
+    .heart:before, .heart:after {
+        content: "";
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: red;
+        border-radius: 50%;
+    }
+    .heart:before { top: -15px; left: 0; }
+    .heart:after { left: -15px; top: 0; }
+
+    @keyframes rise {
+        from {transform: translateY(0) rotate(45deg); opacity: 1;}
+        to {transform: translateY(-300px) rotate(45deg); opacity: 0;}
+    }
+</style>
+</head>
+<body>
+
+<!-- Musica di sottofondo -->
+<audio id="bgMusic" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/10/18/audio_b40399a7a1.mp3?filename=romantic-piano-loop-12285.mp3" type="audio/mpeg">
+</audio>
+
+<div id="book">
+    <!-- Copertina -->
+    <div class="page" id="cover">
+        📖 Diario di Bea 💞<br>
+        <small>Tocca per aprire...</small>
+    </div>
+
+    <!-- Pagina 1 -->
+    <div class="page hidden" id="page1">
+        <div class="phrase">Clicca o tocca i cuori che appaiono tra le pagine ❤️</div>
+    </div>
+
+    <!-- Pagina 2 -->
+    <div class="page hidden" id="page2">
+        <div class="phrase">Illumina le stelle dorate ✨</div>
+        <canvas id="starCanvas" width="300" height="200"></canvas>
+    </div>
+
+    <!-- Pagina 3 -->
+    <div class="page hidden" id="page3">
+        <div class="phrase">Scopri il segreto nascosto... 💌</div>
+        <canvas id="scratchCanvas" width="300" height="200"></canvas>
+    </div>
+
+    <!-- Pagina Finale -->
+    <div class="page hidden" id="finalPage">
+        <div class="phrase">Bea, tu sei la mia storia più bella 📖💞</div>
+    </div>
+</div>
+
+<script>
+const music = document.getElementById("bgMusic");
+const pages = ["cover","page1","page2","page3","finalPage"];
+let current = 0;
+
+// Petali animati
+for (let i = 0; i < 20; i++) {
+    let petal = document.createElement("div");
+    petal.classList.add("petal");
+    petal.style.left = Math.random()*100 + "vw";
+    petal.style.animationDuration = (5 + Math.random()*5) + "s";
+    document.body.appendChild(petal);
+}
+
+// Apri diario
+document.getElementById("cover").onclick = () => {
+    music.play();
+    showPage(1);
+    startHearts();
+};
+
+function showPage(n){
+    pages.forEach((id,i)=>{
+        document.getElementById(id).classList.add("hidden");
+        if(i===n) document.getElementById(id).classList.remove("hidden");
+    });
+    current = n;
+    if(n===1) startHearts();
+    if(n===2) startStars();
+    if(n===3) startScratch();
+}
+
+// Pagina 1 - Cuori
+function startHearts(){
+    const page = document.getElementById("page1");
+    let count = 0;
+    for(let i=0;i<5;i++){
+        let h = document.createElement("div");
+        h.classList.add("heart");
+        h.style.left = (Math.random()*80+10)+"%";
+        h.style.top = "70%";
+        h.onclick = () => {
+            h.remove();
+            count++;
+            if(count===5){
+                setTimeout(()=>{
+                    page.innerHTML = '<div class="phrase">Ogni cuore che disegno è per te, Bea ❤️</div><button class="btn" onclick="showPage(2)">Prosegui ➜</button>';
+                },500);
+            }
+        };
+        page.appendChild(h);
+    }
+}
+
+// Pagina 2 - Stelle
+function startStars(){
+    const c = document.getElementById("starCanvas");
+    const ctx = c.getContext("2d");
+    const stars = [];
+    for(let i=0;i<6;i++){
+        stars.push({x:Math.random()*280+10, y:Math.random()*180+10, lit:false});
+    }
+    drawStars();
+
+    c.addEventListener("click", function(e){
+        const rect = c.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        stars.forEach(s=>{
+            if(Math.hypot(x-s.x,y-s.y)<15) s.lit=true;
+        });
+        drawStars();
+        if(stars.every(s=>s.lit)){
+            setTimeout(()=>{
+                document.getElementById("page2").innerHTML = '<div class="phrase">Sei la luce che illumina ogni pagina del mio cuore ✨</div><button class="btn" onclick="showPage(3)">Prosegui ➜</button>';
+            },500);
+        }
+    });
+
+    function drawStars(){
+        ctx.clearRect(0,0,300,200);
+        stars.forEach(s=>{
+            ctx.beginPath();
+            ctx.arc(s.x,s.y,8,0,Math.PI*2);
+            ctx.fillStyle = s.lit ? "gold" : "rgba(255,215,0,0.3)";
+            ctx.fill();
+        });
+    }
+}
+
+// Pagina 3 - Scratch
+function startScratch(){
+    const c = document.getElementById("scratchCanvas");
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#888";
+    ctx.fillRect(0,0,c.width,c.height);
+    ctx.globalCompositeOperation = "destination-out";
+    let revealed = false;
+
+    const draw = (x,y)=>{
+        ctx.beginPath();
+        ctx.arc(x,y,20,0,Math.PI*2);
+        ctx.fill();
+    };
+
+    c.addEventListener("mousemove",(e)=>{
+        if(e.buttons===1){
+            const r = c.getBoundingClientRect();
+            draw(e.clientX-r.left,e.clientY-r.top);
+        }
+    });
+
+    c.addEventListener("touchmove",(e)=>{
+        const r = c.getBoundingClientRect();
+        draw(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);
+    });
+
+    setTimeout(()=>{
+        if(!revealed){
+            revealed = true;
+            document.getElementById("page3").innerHTML = '<div class="phrase">Sotto ogni segreto, c’è il mio amore per te ❤️</div><button class="btn" onclick="showPage(4)">Chiudi il diario 💞</button>';
+        }
+    },6000);
+}
+</script>
+</body>
+</html>
